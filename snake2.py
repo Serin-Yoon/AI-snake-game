@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 from pygame.locals import *
+from snakeAI import *
 
 # 색상 RGB 설정
 BLACK = (0, 0, 0)
@@ -13,13 +14,7 @@ FOODCOLOR = (218, 127, 143)
 BGCOLOR = (225, 229, 234)
 SCREENCOLOR = (250, 243, 243)
 
-# 방향키 설정
-UP = (0, -1)
-DOWN = (0, 1)
-LEFT = (-1, 0)
-RIGHT = (1, 0)
-
-FPS = 10
+FPS = 100
 
 WINDOW_WIDTH = 520
 WINDOW_HEIGHT = 600
@@ -64,7 +59,7 @@ class Snake(object):
         if len(self.coords) > self.length:
             self.coords.pop()
 
-        if new in self.coords[2:]:
+        if new in self.coords[1:]:
             return False
 
         return True
@@ -73,8 +68,10 @@ class Snake(object):
     def draw(self):
         head = self.coords[0]
         for c in self.coords:
-            drawRect(c[0], c[1], GRID_SIZE, GRID_SIZE, self.color)
-        drawRect(head[0], head[1], GRID_SIZE, GRID_SIZE, HEADCOLOR)
+            drawRect(c[0] + 1, c[1] + 1, GRID_SIZE - 1, GRID_SIZE - 1, self.color)
+
+        drawRect(c[0] + 1, c[1] + 1, GRID_SIZE - 1, GRID_SIZE - 1, SNAKECOLOR)
+        drawRect(head[0] - 1, head[1], GRID_SIZE -  1, GRID_SIZE - 1, HEADCOLOR)
 
     # 뱀 먹이 먹었을 시
     def eat(self):
@@ -119,15 +116,21 @@ def runGame(snake, feed):
     screenRect, screenSurf = drawRect(MARGIN, TOP_MARGIN, SCREEN_SIZE, SCREEN_SIZE, SCREENCOLOR)
     infoRect, infoSurf = drawRect(MARGIN, MARGIN, SCREEN_SIZE, TOP_MARGIN - 20)
 
+    path = None
+    keys = [K_UP, K_DOWN, K_LEFT, K_RIGHT]
+    sa = SnakeAI(snake.direction)
+
     while True:
         for e in pygame.event.get():
             if e.type == QUIT:
                 terminate()
             if e.type == KEYDOWN:
-                keys = [K_UP, K_DOWN, K_LEFT, K_RIGHT]
                 if e.key in keys:
                     execEvent(snake, e.key)
 
+        path = sa.getNextDirection(snake.coords, feed.coord)
+        if path >= 0:
+            execEvent(snake, keys[path])
 
         if not snake.move():
             snake.draw()
@@ -136,7 +139,7 @@ def runGame(snake, feed):
         renderRect(screenSurf, screenRect, SCREENCOLOR)
         renderRect(infoSurf, infoRect, BGCOLOR)
 
-        eatCheck(snake, feed)
+        eatCheck(snake, feed, sa)
         drawGrid()
         showTitle()
         showGameInfo(snake.length)
@@ -147,14 +150,17 @@ def runGame(snake, feed):
         CLOCK.tick(FPS)
 
 # 먹이 먹었는지 확인하는 함수
-def eatCheck(snake, feed):
+def eatCheck(snake, feed, sa):
     snake.draw()
     feed.draw()
 
     if snake.coords[0] == feed.coord:
         snake.eat()
-        feed.create()
 
+        while True:
+            feed.create()
+            if feed.coord not in snake.coords:
+                break
     return
 
 # 방향키 인식 함수
@@ -219,12 +225,11 @@ def gameOver():
     y = (WINDOW_HEIGHT // 2) + 80
     makeText(font, 'Over', GRAY, None, x, y)
 
-    pygame.display.update()
-
     while True:
         for e in pygame.event.get():
             if e.type == QUIT:
                 terminate()
+        CLOCK.tick(FPS)
 
 
 if __name__ == '__main__':
