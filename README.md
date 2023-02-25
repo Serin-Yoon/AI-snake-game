@@ -1,7 +1,5 @@
 ## A* algorithm을 이용한 AI Snake Game
 
-![시연영상](http://img.youtube.com/vi/XD-FvAR3vZk/0.jpg)
+[![Video](http://img.youtube.com/vi/XD-FvAR3vZk/0.jpg)](https://youtu.be/XD-FvAR3vZk?t=0s)
 
-시연 영상: https://youtu.be/XD-FvAR3vZk
-
-참고 코드: http://inventwithpython.com/pygame/chapter6.html
+- Reference: http://inventwithpython.com/pygame/chapter6.html
